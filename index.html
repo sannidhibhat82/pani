@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Phaneendra's Birthday Story! [11-05]</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lobster&family=Caveat:wght@700&family=Balsamiq+Sans:wght@700&display=swap');
+
+        :root {
+            --bg-dark: #0d0d0d; 
+            --bg-current-lights: var(--bg-dark); 
+            --primary-accent: #FFD700; 
+            --secondary-accent: #FF69B4; 
+            
+            /* Text Colors */
+            --text-color-on-dark: #f0f0f0;      /* For dark backgrounds */
+            --text-color-on-light: #052f20;     /* For light backgrounds (like #befee2) */
+            --text-color-on-gradient: #ffffff;  /* For the main vibrant gradient */
+            --text-button: #222;              /* Button text color */
+
+            /* Current body text color - will be updated by JS */
+            --current-body-text-color: var(--text-color-on-dark); 
+
+            --button-bg: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+            --button-hover-bg: linear-gradient(135deg, var(--secondary-accent), var(--primary-accent));
+            
+            --bulb-off-initial: #222; 
+            --bulb-off-visible: #444; 
+            --bulb-color-1: #3498db; --bulb-color-2: #2ecc71; --bulb-color-3: #e74c3c;
+            --bulb-color-4: #f1c40f; --bulb-color-5: #9b59b6; 
+            
+            --speech-bubble-bg: #fff; 
+            --speech-bubble-text: #333;
+        }
+
+        html, body {
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden;
+            margin: 0; 
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-current-lights);
+            color: var(--current-body-text-color); 
+            transition: background 1s ease-in-out, color 1s ease-in-out;
+        }
+
+        .viewport-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
+            padding: clamp(10px, 3vw, 20px); 
+            position: relative;
+            box-sizing: border-box; 
+        }
+
+        .stage-element {
+            position: absolute;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(.8) translateY(30px);
+            transition: opacity .7s ease-out,transform .7s ease-out,visibility 0s .7s;
+            text-align: center;
+        }
+        .stage-element.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+        }
+        
+        #lights-container {
+            top: clamp(5%, 8vh, 10%);
+            width: 90%;
+            display: flex;
+            justify-content: space-around;
+            z-index: 5;
+        }
+        .bulb {
+            width: clamp(28px,7vw,45px);
+            height: clamp(28px,7vw,45px);
+            background-color: var(--bulb-off-initial); 
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 1px var(--bulb-off-initial);
+            transition: background-color .5s,box-shadow .5s,opacity .5s,transform .5s;
+            opacity: 0; 
+            transform: scale(.5);
+        }
+        .bulb.visible { 
+            opacity: 1;
+            transform: scale(1);
+            background-color: var(--bulb-off-visible);
+            box-shadow:0 0 3px var(--bulb-off-visible);
+        }
+        .bulb::before {
+            content:'';position:absolute;top:-8px;left:50%;
+            transform:translateX(-50%);width:50%;height:8px;
+            background-color:#444;border-radius:2px 2px 0 0;
+        }
+        .bulb.lit { box-shadow:0 0 12px currentColor,0 0 25px currentColor; }
+        #bulb1.lit{background-color:var(--bulb-color-1);color:var(--bulb-color-1)}
+        #bulb2.lit{background-color:var(--bulb-color-2);color:var(--bulb-color-2)}
+        #bulb3.lit{background-color:var(--bulb-color-3);color:var(--bulb-color-3)}
+        #bulb4.lit{background-color:var(--bulb-color-4);color:var(--bulb-color-4)}
+        #bulb5.lit{background-color:var(--bulb-color-5);color:var(--bulb-color-5)}
+        
+        #lights-on-prompt {
+            font-family:'Balsamiq Sans',cursive;
+            font-size:clamp(1.5rem,6vw,2.5rem);
+            opacity:0;transition:opacity .5s ease-in;
+            color: inherit; /* Will take color from body */
+        }
+        
+        #truck-wrapper {
+            top: clamp(15%, 20vh, 22%); /* This might need to be adjusted if truck is taller */
+            left:0;
+            width:100%;
+            /* INCREASE THE HEIGHT HERE */
+            height: 100%; /* Example: Increased from 80px, 22vw, 130px */
+            overflow:hidden;
+            z-index:8;
+        }
+        #truck img {
+            max-width: 100%;
+            height:100%;
+            object-fit: contain; 
+            display:block;
+        }
+        #truck-announcement {
+             position:absolute;bottom:105%;left:50%;
+             transform:translateX(-50%);
+             background-color:var(--speech-bubble-bg);color:var(--speech-bubble-text);
+             padding:8px 14px;border-radius:8px;font-size:clamp(.8rem,2.4vw,.95rem);
+             font-family:'Balsamiq Sans',cursive;box-shadow:1px 1px 4px rgba(0,0,0,.2);
+             opacity:0;transition:opacity .5s ease-out;white-space:nowrap;z-index:9;
+        }
+        #truck-announcement::after {
+            content:'';position:absolute;top:100%;left:50%;transform: translateX(-50%);
+            width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;
+            border-top:8px solid var(--speech-bubble-bg);
+        }
+        #truck.drive-in-stop-center{animation:driveInStopCenterAnim 3s cubic-bezier(.25,.1,.25,1) forwards}
+        @keyframes driveInStopCenterAnim{0%{transform:translateX(-120%)}100%{transform:translateX(calc(50vw - 50%))}}
+        #truck.drive-across-slowly{animation:driveAcrossSlowlyAnim 8s linear forwards .5s}
+        @keyframes driveAcrossSlowlyAnim{0%{transform:translateX(calc(50vw - 50%))}100%{transform:translateX(120vw)}}
+        #truck.drive-out-quickly{animation:driveOutQuicklyAnim 1.5s cubic-bezier(.55,.085,.68,.53) forwards}
+        @keyframes driveOutQuicklyAnim{100%{transform:translateX(120vw)}}
+
+        #date-display {
+            position:absolute;
+            top: clamp(10px, 2vh, 15px);    
+            right: clamp(10px, 3vw, 20px);   
+            font-family:'Poppins',sans-serif;font-weight:600;
+            font-size:clamp(.85rem,2.8vw,1.2rem);
+            opacity:0;transition:opacity .8s ease-in .5s;
+            z-index:500;
+            background-color:rgba(0,0,0,0.1); 
+            padding:3px 6px;border-radius:3px;
+            color: inherit; /* Will take color from body */
+        }
+        
+        #banner-area {
+            display:flex;flex-direction:column;align-items:center;
+            gap:clamp(8px, 2vh, 12px);
+            top: clamp(18%, 22vh, 25%);
+            z-index:10;
+        }
+        #banner {
+            font-family:'Lobster',cursive;font-size:clamp(2rem,8vw,4rem);
+            color:var(--primary-accent);padding:clamp(6px,2vw,10px) clamp(12px,4vw,22px);
+            background-color:rgba(0,0,0,.2);border-radius:10px;
+            text-shadow:1px 1px 3px rgba(0,0,0,.3);
+            transform-origin:center center;opacity:0;transform:scale(.5);
+        }
+        #banner.revealed {
+            opacity:1;transform:scale(1);
+            transition:opacity .6s .2s ease-out,transform .6s .2s ease-out;
+        }
+        
+        .birthday-fall-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:11;overflow:hidden}
+        .falling-particle{position:absolute;border-radius:50%;opacity:0;animation:fallAndFade 3s linear forwards}
+        .falling-particle.star{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:8px solid gold;transform:rotate(35deg);border-radius:0}
+        .falling-particle.dot{width:6px;height:6px;background-color:var(--secondary-accent)}
+        .falling-particle.heart{font-size:12px;color:var(--secondary-accent);background-color:transparent!important;border-radius:0!important}
+        @keyframes fallAndFade{0%{transform:translateY(-20vh) translateX(var(--start-x)) rotate(0deg);opacity:1}100%{transform:translateY(120vh) translateX(var(--start-x)) rotate(720deg);opacity:0}}
+        
+        .sparkle-effect-container{position:absolute;top:25%;left:50%;transform:translateX(-50%);width:200px;height:100px;pointer-events:none;z-index:11}
+        .birthday-sparkle{position:absolute;width:5px;height:5px;background:gold;border-radius:50%;opacity:0;animation:sparkleAnim .7s ease-out forwards}
+        @keyframes sparkleAnim{0%{transform:scale(.5) translate(0,0);opacity:1}100%{transform:scale(1.5) translate(var(--sparkle-tx),var(--sparkle-ty));opacity:0}}
+        
+        #phaneendra-spotlight {
+            display:flex;flex-direction:column;align-items:center;
+            gap:clamp(10px, 2.5vh, 15px);
+            z-index:15;transition:transform .8s cubic-bezier(.23,1,.32,1);
+        }
+        #phaneendra-spotlight.moved-up {
+            transform:translateY(clamp(-2vh, -25vh, -15vh)) scale(clamp(0.7, 0.65, 0.75));
+        }
+        #phaneendra-photo {
+            width:clamp(130px,40vw,200px);height:clamp(130px,40vw,200px);
+            border-radius:50%;border:5px solid var(--secondary-accent);
+            box-shadow:0 0 25px var(--secondary-accent),0 0 40px var(--primary-accent);object-fit:cover;
+        }
+        #phaneendra-name {
+            font-family:'Caveat',cursive;font-size:clamp(2rem,8vw,3.3rem);
+            color: inherit; /* Will take color from body */
+        }
+        
+        #cake-scene {
+            display:flex;flex-direction:column;align-items:center;z-index:20;
+            margin-top:clamp(35vh, 3vh, 2vh);
+        }
+        #table-surface{width:clamp(180px,60vw,250px);height:20px;background-color:#795548;border-radius:4px;box-shadow:0 4px 8px rgba(0,0,0,.25)}
+        #cake-container{position:relative;width:clamp(100px,30vw,150px);height:clamp(70px,20vw,100px);margin-bottom:-3px}
+        #cake{width:100%;height:100%;background-color:#FFE0B2;border-radius:8px 8px 0 0;border:2px solid #E6A756;position:relative}
+        #cake::before{content:'';position:absolute;top:-10px;left:-5px;right:-5px;height:20px;background-color:var(--secondary-accent);border-radius:10px 10px 5px 5px / 10px 10px 15px 15px}
+        #candles-on-cake{position:absolute;bottom:85%;left:50%;transform:translateX(-50%);display:flex;gap:clamp(7px,1.8vw,10px);opacity:0;transition:opacity .5s ease-in}
+        .candle-item{width:clamp(7px,1.6vw,9px);height:clamp(18px,4.5vw,28px);background-color:#f5f5f5;border-radius:2px 2px 0 0;position:relative}
+        .flame-item{position:absolute;top:-clamp(8px,2.3vw,13px);left:50%;transform:translateX(-50%);width:clamp(8px,1.8vw,10px);height:clamp(10px,2.8vw,16px);background-color:orange;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;opacity:0;box-shadow:0 0 8px orange,0 0 13px yellow;animation:flickerFlame .5s infinite alternate}
+        @keyframes flickerFlame{0%{transform:translateX(-50%) scaleY(1) scaleX(1)}50%{transform:translateX(-50%) scaleY(1.1) scaleX(.9) skewX(5deg)}100%{transform:translateX(-50%) scaleY(.95) scaleX(1.05) skewY(-5deg)}}
+        #cake-text{font-family:'Lobster',cursive;font-size:clamp(1.5rem,6vw,2.3rem);color:var(--primary-accent);margin-top:clamp(10px,2vh,15px);opacity:0;transition:opacity .5s .5s ease-out}
+        
+        .particle-burst-container{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100}
+        .particle{position:absolute;background-color:var(--primary-accent);border-radius:50%;opacity:0;animation:burst .8s ease-out forwards}
+        @keyframes burst{0%{transform:scale(.5);opacity:1}100%{transform:scale(1.2) translate(var(--tx),var(--ty));opacity:0}}
+        
+        /* Existing CSS for Memory Lane */
+#memory-lane {
+    /* INCREASE WIDTH AND HEIGHT HERE */
+    width: clamp(260px, 85vw, 450px);  /* Example: Increased from 220px, 75vw, 380px */
+    height: clamp(260px, 85vw, 450px); /* Example: Increased from 220px, 75vw, 380px */
+    background-color: rgba(0,0,0,.15);
+    border: 3px solid var(--primary-accent);
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    z-index: 25;
+}
+
+#current-memory-photo {
+    max-width: 95%; /* Keeps a small padding inside #memory-lane */
+    max-height: 95%;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,.4);
+    opacity: 0; /* Controlled by JS */
+}
+        .photo-anim-slide-in-left{animation:slideInLeft .6s forwards} @keyframes slideInLeft{0%{transform:translateX(-100%) rotate(-15deg);opacity:0}100%{transform:translateX(0) rotate(0deg);opacity:1}}
+        .photo-anim-zoom-in-bounce{animation:zoomInBounce .7s cubic-bezier(.175,.885,.32,1.275) forwards} @keyframes zoomInBounce{0%{transform:scale(.2);opacity:0}70%{transform:scale(1.1);opacity:1}100%{transform:scale(1);opacity:1}}
+        .photo-anim-flip-y-fade{animation:flipYFade .8s forwards} @keyframes flipYFade{0%{transform:rotateY(180deg) scale(.7);opacity:0}100%{transform:rotateY(0deg) scale(1);opacity:1}}
+        .photo-anim-newspaper{animation:newspaperIn .7s ease-out forwards} @keyframes newspaperIn{0%{transform:scale(0) rotateZ(720deg);opacity:0}100%{transform:scale(1) rotateZ(0deg);opacity:1}}
+        
+        #personal-message-area{width:clamp(260px,88vw,530px);padding:clamp(12px,3.5vw,22px);background-color:rgba(var(--bg-light-ambient-rgb,30,30,45),.85);border-radius:15px;font-size:clamp(.9rem,3.5vw,1.1rem);line-height:1.6;max-height:clamp(65vh,70vh,70vh);overflow-y:auto;z-index:30}
+        #personal-message-area p{margin-bottom:12px} #personal-message-area strong{color:var(--secondary-accent)}
+        #personal-message-area .signature{font-family:'Caveat',cursive;font-size:clamp(1.3rem,4.5vw,1.6rem);color:var(--primary-accent);text-align:right;margin-top:18px}
+        
+        #lights-off-scene{width:100%;height:100%;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:clamp(15px,4vw,25px);z-index:5}
+        .smile-emoji{font-size:clamp(2.2rem,11vw,4.5rem);opacity:0;animation:floatEmoji 3.5s ease-in-out infinite alternate,fadeInEmoji 1.2s forwards}
+        @keyframes floatEmoji{0%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-18px) rotate(8deg)}100%{transform:translateY(0) rotate(-3deg)}}
+        @keyframes fadeInEmoji{to{opacity:.85}}
+        #final-message{font-family:'Lobster',cursive;font-size:clamp(1.8rem,7vw,2.8rem);position:absolute;bottom:25%; color: inherit;}
+        
+        #control-button{position:fixed;bottom:clamp(15px,4vh,30px);left:50%;transform:translateX(-50%);padding:clamp(12px,3vw,18px) clamp(25px,6vw,40px);font-size:clamp(.95rem,3.8vw,1.25rem);font-weight:700;color:var(--text-button);background:var(--button-bg);border:none;border-radius:50px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35),0 0 12px var(--primary-accent);transition:all .3s ease;z-index:200;outline:none}
+        #control-button:hover,#control-button:focus{background:var(--button-hover-bg);transform:translateX(-50%) scale(1.05);box-shadow:0 9px 22px rgba(0,0,0,.45),0 0 18px var(--secondary-accent)}
+        #control-button:active{transform:translateX(-50%) scale(.98)}
+        #control-button.hidden{opacity:0;pointer-events:none}
+
+    </style>
+</head>
+<body>
+    <div class="viewport-container" id="viewportContainer">
+        <div id="date-display">11-05</div>
+        <div class="birthday-fall-container" id="birthdayFallContainer"></div>
+
+        <div id="lights-on-prompt" class="stage-element">Let there be light...</div>
+        <div id="lights-container" class="stage-element">
+            <div class="bulb" id="bulb1"></div> <div class="bulb" id="bulb2"></div>
+            <div class="bulb" id="bulb3"></div> <div class="bulb" id="bulb4"></div>
+            <div class="bulb" id="bulb5"></div>
+        </div>
+
+        <div id="truck-wrapper" class="stage-element"> 
+            <div id="truck">
+                <img src="my-truck.gif" alt="Phaneendra's Truck"> 
+                <div id="truck-announcement">A special delivery!</div>
+            </div>
+        </div>
+        
+        <div id="banner-area" class="stage-element">
+            <div id="banner"></div>
+        </div>
+        <div class="sparkle-effect-container" id="nameSparkleContainer"></div>
+
+        <div id="phaneendra-spotlight" class="stage-element">
+            <img id="phaneendra-photo" src="phaneendra-main.jpeg" alt="Phaneendra">
+            <div id="phaneendra-name">Phaneendra</div>
+        </div>
+
+        <div id="cake-scene" class="stage-element">
+            <div id="cake-container"> <div id="cake"></div> <div id="candles-on-cake"></div> </div>
+            <div id="table-surface"></div>
+            <div id="cake-text"></div> 
+        </div>
+        
+        <div id="particle-burst-area" class="particle-burst-container"></div>
+        <div id="memory-lane" class="stage-element"><img id="current-memory-photo" src="" alt="Memory"></div>
+        <div id="personal-message-area" class="stage-element">
+            <p>Hey Phaneendra,</p>
+            <p>Wishing you the HAPPIEST of birthdays! 🎉 This little surprise is to show you how awesome you are.</p>
+            
+            <p>May your day be filled with joy, laughter, & everything you wish for. Here's to another year of epic memories!</p>
+            <p class="signature">With all the love,<br>Sannidhi & Disha</p>
+        </div>
+        <div id="lights-off-scene" class="stage-element"><div id="final-message">Hope you loved it!</div></div>
+
+        <button id="control-button">💡 Turn on the Lights!</button>
+    </div>
+
+    <script>
+        const controlButton = document.getElementById('control-button');
+        const root = document.documentElement;
+        const dateDisplay = document.getElementById('date-display');
+        const bodyEl = document.body; // Get body element
+        const bulbData = [ 
+            { id: 'bulb1', varName: '--bulb-color-1' }, { id: 'bulb2', varName: '--bulb-color-2' },
+            { id: 'bulb3', varName: '--bulb-color-3' }, { id: 'bulb4', varName: '--bulb-color-4' },
+            { id: 'bulb5', varName: '--bulb-color-5' }
+        ];
+        let litBulbCount = 0; const totalBulbs = bulbData.length;
+        let currentActiveLightColors = [];
+        const truckBgColor = '#befee2'; 
+        const mainGradientBackground = 'linear-gradient(120deg, #f6d365 0%, #fda085 100%)'; 
+        let truckAnimationTimeout = null;
+
+        // --- STAGES ARRAY (Updated for background flow) ---
+        const stages = [
+            { id: 'startLights', elements: ['lights-on-prompt', 'date-display'], buttonText: "💡 Turn on the Lights!", action: startLightSequence, newTextColorVar: '--text-color-on-dark' },
+            { 
+                id: 'truckArrival', elements: ['lights-container', 'truck-wrapper', 'date-display'], 
+                buttonText: "🚚 What's this?", action: truckArrivesAndStops,
+                newBackground: truckBgColor, 
+                newTextColorVar: '--text-color-on-light'
+            },
+            { id: 'truckAnnouncement', elements: ['lights-container', 'truck-wrapper', 'date-display'], buttonText: "🤔 What's the special delivery?", action: showTruckAnnouncementAndStartSlowDrive }, // Inherits truck's bg/text color
+            { 
+                id: 'revealBirthdayAndPhaneendra', 
+                elements: ['lights-container', 'banner-area', 'phaneendra-spotlight', 'date-display'], 
+                buttonText: "What is that?",  // Changed button text
+                action: revealBirthdayAndPhaneendraAndEffects,
+                newBackground: mainGradientBackground, 
+                newTextColorVar: '--text-color-on-gradient' 
+            },
+            { 
+                id: 'showCake', elements: ['lights-container', 'banner-area', 'phaneendra-spotlight', 'cake-scene', 'date-display'], 
+                buttonText: "🕯️ Light the Candles!", action: prepCakeStage 
+                // Inherits mainGradientBackground & its text color
+            },
+            {
+                id: 'lightCandles', elements: ['lights-container', 'banner-area', 'phaneendra-spotlight', 'cake-scene', 'date-display'],
+                buttonText: "✨ Make a Wish!", action: lightTheCandles
+            },
+            { 
+                id: 'particleBlast', elements: ['lights-container', 'banner-area', 'phaneendra-spotlight', 'cake-scene', 'date-display'], 
+                buttonText: "📸 Flashback Time!", action: triggerParticleBlast 
+            },
+            { 
+                id: 'startMemories', elements: ['lights-container', 'memory-lane', 'date-display'], 
+                buttonText: "Next Memory (1/17)", action: startMemoryLane 
+            }, 
+            { 
+                id: 'showMessage', elements: ['lights-container', 'personal-message-area', 'date-display'], 
+                buttonText: "💖 One Last Sparkle?", action: showPersonalMessage 
+            },
+            { 
+                id: 'lightsOff', elements: ['lights-off-scene', 'date-display'], 
+                buttonText: "💫 Goodnight!", action: lightsOffEffect, 
+                backgroundReset: true, // Resets to dark bg
+                newTextColorVar: '--text-color-on-dark' // Text for dark bg
+            },
+            { id: 'finalEnd', elements: ['lights-off-scene', 'date-display'], buttonText: "", action: hideButtonAtEnd},
+            { id: 'replay', buttonText: "🎉 Replay Story? 🎉", action: replayExperience, newTextColorVar: '--text-color-on-dark' }
+        ];
+        
+        const memoryPhotoCount=17; const memoryPhotoAnimations=['photo-anim-slide-in-left','photo-anim-zoom-in-bounce','photo-anim-flip-y-fade','photo-anim-newspaper']; let currentPhotoIndex=0;
+        const memoriesStartIndex=stages.findIndex(s=>s.id==='startMemories')+1;
+        for(let i=0;i<memoryPhotoCount-1;i++){stages.splice(memoriesStartIndex+i,0,{id:`showMemory${i+2}`,elements:['lights-container','memory-lane','date-display'],buttonText:`Next Memory (${i+2}/${memoryPhotoCount})`,action:showNextMemoryPhoto});}
+        let currentStageIndex=0; let activeElements=[];
+
+        function setActiveStage(stageConfig) {
+            const elementsToKeepActive = stageConfig.elements || [];
+            activeElements.forEach(elId => { if (!elementsToKeepActive.includes(elId)) { const el = document.getElementById(elId); if (el) el.classList.remove('active'); } });
+            activeElements = [...elementsToKeepActive];
+            elementsToKeepActive.forEach(elId => { const el = document.getElementById(elId); if (el && !el.classList.contains('active')) el.classList.add('active'); });
+
+            if (stageConfig.newBackground) {
+                root.style.setProperty('--bg-current-lights', stageConfig.newBackground);
+            } else if (stageConfig.backgroundReset) {
+                 root.style.setProperty('--bg-current-lights', 'var(--bg-dark)');
+            }
+
+            if (stageConfig.newTextColorVar) {
+                root.style.setProperty('--current-body-text-color', `var(${stageConfig.newTextColorVar})`);
+            } else if (stageConfig.backgroundReset) { 
+                root.style.setProperty('--current-body-text-color', 'var(--text-color-on-dark)');
+            }
+            
+            if (stageConfig.buttonText !== undefined) controlButton.innerHTML = stageConfig.buttonText;
+            if (stageConfig.id === 'finalEnd') controlButton.classList.add('hidden');
+            else if (stageConfig.id === 'replay') controlButton.classList.remove('hidden');
+        }
+        
+        function updateBodyBackgroundWithBulbColors(){
+            let targetTextColorVar = '--text-color-on-dark'; 
+
+            if(litBulbCount === 0){ 
+                root.style.setProperty('--bg-current-lights', 'var(--bg-dark)');
+            } else if (currentActiveLightColors.length === 1 && stages[currentStageIndex]?.newBackground !== truckBgColor) { 
+                root.style.setProperty('--bg-current-lights', currentActiveLightColors[0]);
+            } else if (currentActiveLightColors.length > 1 && stages[currentStageIndex]?.newBackground !== truckBgColor) {
+                const gS=`linear-gradient(135deg, ${currentActiveLightColors.join(', ')})`; 
+                root.style.setProperty('--bg-current-lights',gS);
+            }
+            // Only update general text color if not overridden by a stage's specific newTextColorVar
+            // AND if the current stage isn't one that defines its own background (like truckArrival)
+            if (!stages[currentStageIndex]?.newTextColorVar && !stages[currentStageIndex]?.newBackground) {
+                 root.style.setProperty('--current-body-text-color', `var(${targetTextColorVar})`);
+            }
+        }
+
+        function startLightSequence(){document.getElementById('lights-on-prompt').style.opacity='1';dateDisplay.style.opacity='1';litBulbCount=0;currentActiveLightColors=[];updateBodyBackgroundWithBulbColors();}
+        function turnOnNextBulb(){if(litBulbCount<totalBulbs){const bI=bulbData[litBulbCount];const bE=document.getElementById(bI.id);if(bE){bE.classList.add('visible');setTimeout(()=>{bE.classList.add('lit');const bCV=getComputedStyle(root).getPropertyValue(bI.varName).trim();if(!currentActiveLightColors.includes(bCV))currentActiveLightColors.push(bCV);updateBodyBackgroundWithBulbColors();},250);}litBulbCount++;if(litBulbCount<totalBulbs)controlButton.innerHTML=`💡 Light ${litBulbCount+1}/${totalBulbs}`;else{controlButton.innerHTML=stages[stages.findIndex(s=>s.id==='truckArrival')].buttonText;}}}
+        function resetTruck(tE){clearTimeout(truckAnimationTimeout);tE.className='';tE.style.animation='none';tE.style.transform='translateX(-120%)';void tE.offsetWidth;}
+        function truckArrivesAndStops(){document.getElementById('lights-on-prompt').style.opacity='0';const tE=document.getElementById('truck');resetTruck(tE);tE.classList.add('drive-in-stop-center');}
+        function showTruckAnnouncementAndStartSlowDrive(){document.getElementById('truck-announcement').style.opacity='1';const tE=document.getElementById('truck');clearTimeout(truckAnimationTimeout);truckAnimationTimeout=setTimeout(()=>{if(tE.classList.contains('drive-in-stop-center')){tE.classList.remove('drive-in-stop-center');tE.style.transform='translateX(calc(50vw - 50%))';void tE.offsetWidth;tE.classList.add('drive-across-slowly');}},500);}
+        function revealBirthdayAndPhaneendraAndEffects(){clearTimeout(truckAnimationTimeout);const tE=document.getElementById('truck');const cT=getComputedStyle(tE).transform;tE.classList.remove('drive-in-stop-center','drive-across-slowly');tE.style.animation='none';tE.style.transform=cT;void tE.offsetWidth;tE.classList.add('drive-out-quickly');document.getElementById('truck-announcement').style.opacity='0';const bE=document.getElementById('banner');bE.textContent="Happy Birthday Phaneendra!";bE.classList.add('revealed');triggerSparkles('nameSparkleContainer',20,250,120);triggerFallingParticles(4000,35);}
+        function triggerFallingParticles(dur=3000,cnt=20){const c=document.getElementById('birthdayFallContainer');c.innerHTML='';const pT=['star','dot','heart'];const clr=['gold','var(--secondary-accent)','var(--primary-accent)','#FFF'];for(let i=0;i<cnt;i++){const p=document.createElement('div');p.classList.add('falling-particle');const t=pT[Math.floor(Math.random()*pT.length)];p.classList.add(t);if(t==='heart'){p.textContent='💖';}else if(t==='dot'){p.style.backgroundColor=clr[Math.floor(Math.random()*clr.length)];}p.style.left=Math.random()*100+'vw';p.style.setProperty('--start-x',(Math.random()*40-20)+'vw');p.style.animationDelay=(Math.random()*(dur/1000))+'s';p.style.animationDuration=(Math.random()*1+2.5)+'s';c.appendChild(p);}setTimeout(()=>c.innerHTML='',dur+1000);}
+        function triggerSparkles(cId,cnt=15,aW=150,aH=80){const sC=document.getElementById(cId);if(!sC)return;sC.innerHTML='';for(let i=0;i<cnt;i++){const s=document.createElement('div');s.classList.add('birthday-sparkle');s.style.left=(Math.random()*aW-aW/2)+'px';s.style.top=(Math.random()*aH-aH/2)+'px';const an=Math.random()*Math.PI*2;const d=Math.random()*20+10;s.style.setProperty('--sparkle-tx',(Math.cos(an)*d)+'px');s.style.setProperty('--sparkle-ty',(Math.sin(an)*d)+'px');const cl=['gold','var(--primary-accent)','#FFF'];s.style.background=cl[Math.floor(Math.random()*cl.length)];s.style.animationDelay=(Math.random()*.3)+'s';sC.appendChild(s);}setTimeout(()=>sC.innerHTML='',1000);}
+        function prepCakeStage(){const pS=document.getElementById('phaneendra-spotlight');pS.classList.add('moved-up');document.getElementById('cake-text').style.opacity='0';}
+        function lightTheCandles(){const cC=document.getElementById('candles-on-cake');cC.innerHTML='';const nCC=3;for(let i=0;i<nCC;i++){const cD=document.createElement('div');cD.classList.add('candle-item');const fD=document.createElement('div');fD.classList.add('flame-item');cD.appendChild(fD);cC.appendChild(cD);setTimeout(()=>{fD.style.opacity='1';},i*200+100);}cC.style.opacity='1';document.getElementById('cake-text').textContent="Happy Birthday!";document.getElementById('cake-text').style.opacity='1';}
+        function triggerParticleBlast(){const bA=document.getElementById('particle-burst-area');bA.innerHTML='';const cE=document.getElementById('cake');if(!cE)return;const cR=cE.getBoundingClientRect();const oX=cR.left+cR.width/2;const oY=cR.top+cR.height/2;for(let i=0;i<60;i++){const p=document.createElement('div');p.classList.add('particle');p.style.width=p.style.height=(Math.random()*10+5)+'px';const a=Math.random()*Math.PI*2;const d=Math.random()*100+60;p.style.setProperty('--tx',(Math.cos(a)*d)+'px');p.style.setProperty('--ty',(Math.sin(a)*d)+'px');p.style.left=oX+'px';p.style.top=oY+'px';const cl=['var(--primary-accent)','var(--secondary-accent)','#FFF','#7ed6df'];p.style.backgroundColor=cl[Math.floor(Math.random()*cl.length)];bA.appendChild(p);}setTimeout(()=>bA.innerHTML='',1200);}
+        function displayMemoryPhoto(idx){const pE=document.getElementById('current-memory-photo');pE.className='';void pE.offsetWidth;pE.src=`memory${idx+1}.jpeg`;pE.alt=`Memory ${idx+1}`;const aC=memoryPhotoAnimations[idx%memoryPhotoAnimations.length];pE.classList.add(aC);pE.style.opacity='1';}
+        function startMemoryLane(){currentPhotoIndex=0;['banner-area','phaneendra-spotlight','cake-scene'].forEach(id=>{const el=document.getElementById(id);if(el&&el.classList.contains('active')){el.classList.remove('active');if(id==='phaneendra-spotlight')el.classList.remove('moved-up');activeElements=activeElements.filter(aId=>aId!==id);}});displayMemoryPhoto(currentPhotoIndex);}
+        function showNextMemoryPhoto(){currentPhotoIndex++;if(currentPhotoIndex<memoryPhotoCount){displayMemoryPhoto(currentPhotoIndex);controlButton.innerHTML=`Next Memory (${currentPhotoIndex+1}/${memoryPhotoCount})`;}}
+        function showPersonalMessage(){const mABR=getComputedStyle(document.body).background;let aR=(mABR.includes('rgb(190, 254, 226)')||mABR.includes('#befee2'))?'200,230,220':'30,30,45';root.style.setProperty('--bg-light-ambient-rgb',aR);}
+        function lightsOffEffect(){document.querySelectorAll('#lights-container .bulb.lit').forEach(b=>{b.classList.remove('lit');b.classList.remove('visible');b.style.opacity='0';b.style.transform='scale(0.5)';});const eC=document.getElementById('lights-off-scene');eC.innerHTML='';const fM=document.createElement('div');fM.id='final-message';fM.textContent="Hope you loved it!";eC.appendChild(fM);const emjs=['😊','😄','🥳','💖','✨','🚚','🎉'];emjs.forEach((em,idx)=>{const s=document.createElement('span');s.classList.add('smile-emoji');s.textContent=em;s.style.animationDelay=`${idx*.15}s`;eC.appendChild(s);});}
+        function hideButtonAtEnd(){controlButton.classList.add('hidden');}
+        function replayExperience(){currentStageIndex=0;litBulbCount=0;currentActiveLightColors=[];clearTimeout(truckAnimationTimeout);const tE=document.getElementById('truck');resetTruck(tE);activeElements.forEach(eI=>{const el=document.getElementById(eI);if(el){el.classList.remove('active');if(eI==='banner')el.classList.remove('revealed');if(eI==='truck-wrapper'){document.getElementById('truck-announcement').style.opacity='0';}if(eI==='banner-area'){document.getElementById('banner').textContent='';}if(eI==='phaneendra-spotlight')el.classList.remove('moved-up');if(eI==='cake-scene'){document.getElementById('candles-on-cake').innerHTML='';document.getElementById('candles-on-cake').style.opacity='0';document.getElementById('cake-text').textContent='';document.getElementById('cake-text').style.opacity='0';}}});document.querySelectorAll('.bulb').forEach(b=>{b.classList.remove('lit');b.classList.remove('visible');b.style.opacity='0';b.style.transform='scale(0.5)';});activeElements=[];root.style.setProperty('--bg-current-lights','var(--bg-dark)');root.style.setProperty('--current-body-text-color','var(--text-for-dark-bg)');document.getElementById('current-memory-photo').style.opacity='0';document.getElementById('lights-on-prompt').style.opacity='0';dateDisplay.style.opacity='0';controlButton.classList.remove('hidden');controlButton.innerHTML=stages[0].buttonText;}
+
+        controlButton.addEventListener('click',()=>{if(stages[currentStageIndex]?.id==='finalEnd'){currentStageIndex++;if(currentStageIndex<stages.length&&stages[currentStageIndex].id==='replay'){const rS=stages[currentStageIndex];setActiveStage(rS);if(rS.action)rS.action();controlButton.innerHTML=rS.buttonText;}return;}if(currentStageIndex===0&&stages[currentStageIndex].id==='startLights'){if(litBulbCount<totalBulbs){if(litBulbCount===0){const sC=stages[currentStageIndex];setActiveStage(sC);if(sC.action)sC.action();turnOnNextBulb();}else{turnOnNextBulb();}if(litBulbCount===totalBulbs){}return;}currentStageIndex++;}if(currentStageIndex<stages.length){const s=stages[currentStageIndex];setActiveStage(s);if(s.action)s.action();if(currentStageIndex+1<stages.length){const nS=stages[currentStageIndex+1];if(nS.id!=='finalEnd'){if(nS.id==='startMemories'){controlButton.innerHTML=`Next Memory (1/${memoryPhotoCount})`;}else if(!nS.id.startsWith('showMemory')){controlButton.innerHTML=nS.buttonText;}}}currentStageIndex++;}else{console.log("End.");}});
+        controlButton.innerHTML = stages[0].buttonText;
+        // Set initial text color correctly
+        root.style.setProperty('--current-body-text-color', 'var(--text-for-dark-bg)');
+
+    </script>
+</body>
+</html>
